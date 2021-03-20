@@ -102,13 +102,13 @@ void LinkedList::MoveActual(bool moveForward) {
         actualPrev = temp;
 
         if (actualNext != NULL)
-            actualNext = (actualNext->npx, temp);
+            actualNext = XOR(actualNext->npx, temp);
     } else {
         actual = actualPrev;
         actualNext = temp;
 
         if(actualPrev != NULL)
-            actualPrev = (actualPrev->npx, temp);
+            actualPrev = XOR(actualPrev->npx, temp);
     }
 }
 
