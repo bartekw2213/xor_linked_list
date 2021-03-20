@@ -38,6 +38,7 @@ class LinkedList {
         void DelBeg();
         void DelEnd();
         void DelAct();
+        void DelVal(int x);
         void PrintForward() const;
         void PrintBackward() const;
 };
@@ -240,6 +241,65 @@ void LinkedList::DelAct() {
     }    
 }
 
+void LinkedList::DelVal(int x) {
+    if(head == NULL)
+        return;
+    while (head->data == x)
+        DelBeg();
+    while (end->data == x)
+        DelEnd();
+    while (actual->data == x)
+        DelAct();
+
+    Node* cursor = head;
+    Node* prevCursor = NULL;
+
+    while(true) {
+        while(cursor != NULL && cursor->data != x) {
+            Node* temp = prevCursor;
+            prevCursor = cursor;
+            cursor = XOR(temp, cursor->npx);
+        }
+
+        if(cursor == NULL)
+            break;
+        
+        Node* nextNode = XOR(cursor->npx, prevCursor);
+        if(prevCursor != NULL)
+            prevCursor->npx = XOR(XOR(cursor, prevCursor->npx), nextNode);
+        if(nextNode != NULL)
+            nextNode->npx = XOR(prevCursor, XOR(nextNode->npx, cursor));
+
+        if(cursor == actualPrev)
+            actualPrev = prevCursor;
+        else if(cursor == actualNext)
+            actualNext = nextNode;
+
+        delete cursor;
+        cursor = nextNode;
+    }
+
+    // while(currentNode != NULL && currentNode->data != x) {
+    //     Node* temp = prevNode;
+    //     prevNode = currentNode;
+    //     currentNode = XOR(temp, currentNode->npx);
+    // }
+
+    // if(currentNode == NULL)
+    //     return;
+    
+    // Node* nextNode = XOR(currentNode->npx, prevNode);
+    // prevNode->npx = XOR(XOR(currentNode, prevNode->npx), nextNode);
+    // nextNode->npx = XOR(prevNode, XOR(nextNode->npx, currentNode));
+
+    // if(currentNode == actualPrev)
+    //     actualPrev = prevNode;
+    // else if(currentNode == actualNext)
+    //     actualNext = nextNode;
+
+    // delete currentNode;
+}
+
 void LinkedList::PrintForward() const {
     if (head == NULL) {
         printf("NULL\n");
@@ -279,46 +339,6 @@ void LinkedList::PrintBackward() const {
 int main() {
     LinkedList l;
     char userOption[MAX_OPTION_LENGTH];
-    bool quit = false;
-
-    // while(!quit) {
-    //     scanf("%s", userOption);
-        
-
-    //     if(strncmp(userOption, "ADD_BEG", MAX_OPTION_LENGTH) == 0) {
-    //         int val;
-    //         scanf("%i", &val);
-    //         l.AddBeg(val);
-    //     } 
-    //     else if(strncmp(userOption, "ADD_END", MAX_OPTION_LENGTH) == 0) {
-    //         int val;
-    //         scanf("%i", &val);
-    //         l.AddEnd(val);
-    //     }
-    //     else if(strncmp(userOption, "ADD_ACT", MAX_OPTION_LENGTH) == 0) {
-    //         int val;
-    //         scanf("%i", &val);
-    //         l.AddAct(val);
-    //     } 
-    //     else if(strncmp(userOption, "ACTUAL", MAX_OPTION_LENGTH) == 0)
-    //         l.Actual();
-    //     else if(strncmp(userOption, "NEXT", MAX_OPTION_LENGTH) == 0)
-    //         l.Next();
-    //     else if(strncmp(userOption, "PREV", MAX_OPTION_LENGTH) == 0)
-    //         l.Prev();
-    //     else if(strncmp(userOption, "DEL_BEG", MAX_OPTION_LENGTH) == 0)
-    //         l.DelBeg();
-    //     else if(strncmp(userOption, "DEL_END", MAX_OPTION_LENGTH) == 0)
-    //         l.DelEnd();
-    //     else if(strncmp(userOption, "DEL_ACT", MAX_OPTION_LENGTH) == 0)
-    //         l.DelAct();
-    //     else if(strncmp(userOption, "PRINT_FORWARD", MAX_OPTION_LENGTH) == 0)
-    //         l.PrintForward();
-    //     else if(strncmp(userOption, "PRINT_BACKWARD", MAX_OPTION_LENGTH) == 0)
-    //         l.PrintBackward();
-    //     else
-    //         quit = true;
-    // }
 
     while(std::cin >> userOption) {
         if(strncmp(userOption, "ADD_BEG", MAX_OPTION_LENGTH) == 0) {
@@ -348,6 +368,11 @@ int main() {
             l.DelEnd();
         else if(strncmp(userOption, "DEL_ACT", MAX_OPTION_LENGTH) == 0)
             l.DelAct();
+        else if(strncmp(userOption, "DEL_VAL", MAX_OPTION_LENGTH) == 0) {
+            int val;
+            scanf("%i", &val);
+            l.DelVal(val);
+        } 
         else if(strncmp(userOption, "PRINT_FORWARD", MAX_OPTION_LENGTH) == 0)
             l.PrintForward();
         else if(strncmp(userOption, "PRINT_BACKWARD", MAX_OPTION_LENGTH) == 0)
