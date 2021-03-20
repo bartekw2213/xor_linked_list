@@ -23,6 +23,8 @@ class LinkedList {
         Node* actualPrev;
         Node* actualNext;
         void MoveActual(bool moveForward);
+        void MoveActualOnBeg();
+        void MoveActualOnEnd();
     public:
         LinkedList();
         ~LinkedList();
@@ -94,16 +96,40 @@ void LinkedList::Actual() const {
         printf("%i\n", actual->data);
 }
 
+void LinkedList::MoveActualOnBeg() {
+    actualPrev = NULL;
+    actual = head;
+    actualNext = head->npx;
+}
+
+void LinkedList::MoveActualOnEnd() {
+    actualPrev = end->npx;
+    actual = end;
+    actualNext = NULL;
+}
+
 void LinkedList::MoveActual(bool moveForward) {
     Node* temp = actual;
     
     if (moveForward) {
+        // obecny el jest ostatnim - przesuń actual na początek listy
+        if(actualNext == NULL) {
+            MoveActualOnBeg();
+            return;
+        }
+
         actual = actualNext;
         actualPrev = temp;
-
+        
         if (actualNext != NULL)
             actualNext = XOR(actualNext->npx, temp);
     } else {
+        // obecny el jest pierwszym - przesuń actual na koniec listy
+        if(actualPrev == NULL) {
+            MoveActualOnEnd();
+            return;
+        }
+
         actual = actualPrev;
         actualNext = temp;
 
@@ -113,13 +139,6 @@ void LinkedList::MoveActual(bool moveForward) {
 }
 
 void LinkedList::Next() {
-    // Nie wiadomo co zrobić gdy nie ma już kolejnego elementu, póki co
-    // nie przemieszczam wtedy wskaźnika
-    if(actual == end) {
-        printf("%i\n", actual->data);
-        return;
-    } 
-
     if(head == NULL) {
         printf("NULL\n");
         return;
@@ -130,13 +149,6 @@ void LinkedList::Next() {
 }
 
 void LinkedList::Prev() {
-    // Nie wiadomo co zrobić gdy nie ma już wcześniejszego elementu, 
-    // póki co nie przemieszczam wtedy wskaźnika
-    if(actual == head) {
-        printf("%i\n", actual->data);
-        return;
-    } 
-
     if(head == NULL) {
         printf("NULL\n");
         return;
@@ -150,16 +162,13 @@ void LinkedList::DelBeg() {
     if(head == NULL)
         return;
 
-    // gdy actual wskazuje na usuwany przód - przesuwam go
-    // do przodu
     if(actual == head) {
-        MoveActual(true);
-
-        // jeśli lista jest jednoelementowa to wszystkie wskaźniki
-        // actual ustawiam na null (actual, actualPrev, actualNext)
-        if(head == end)
-            actualPrev = NULL;
+        DelAct();
+        return;
     }
+
+    if(actualPrev == head)
+        actualPrev = NULL;
     
     Node* temp = head;
     head = head->npx;
@@ -174,13 +183,12 @@ void LinkedList::DelEnd() {
     // gdy actual wskazuje na usuwany tył - przesuwam go
     // do tyłu
     if(actual == end) {
-        MoveActual(false);
-
-        // jeśli lista jest jednoelementowa to wszystkie wskaźniki
-        // actual ustawiam na null (actual, actualPrev, actualNext)
-        if(head == end)
-            actualNext = NULL;
+        DelAct();
+        return;
     }
+
+    if(actualNext == end)
+        actualNext = NULL;
     
     Node* temp = end;
     end = end->npx;
@@ -191,24 +199,39 @@ void LinkedList::DelEnd() {
 void LinkedList::DelAct() {
     if(actual == NULL)
         return;
-    
-    if(head == end)
-        DelBeg();
+
+    // list jest jednoelementowa
+    if(head == end) {
+        delete head;
+        head = end = actual = actualPrev = actualNext = NULL;
+    }
+    // actual wskazuje na pierwszy, wiec usun pierwszy element,
+    // a actual ma wskazywać na ostatni element
     else if(head == actual) {
-        DelBeg();
+        Node* temp = head;
+        head = head->npx;
+        head->npx = XOR(temp, head->npx);
+    
         actual = end;
         actualNext = NULL;
         actualPrev = end->npx;
-    }
-
-    Node* temp = actual;
-    Node* tempNext = actualNext;
-    MoveActual(false);
-    actualNext = tempNext;
-    delete temp;
+    // lista nie jest ani jednoelementowa, ani actual nie wskazuje
+    // na początek listy
+    } else {
+        Node* temp = actual;
+        Node* tempNext = actualNext;
+        MoveActual(false);
+        actualNext = tempNext;
+        delete temp;
+    }    
 }
 
 void LinkedList::PrintForward() const {
+    if (head == NULL) {
+        printf("NULL\n");
+        return;
+    }
+
     Node* currentNode = head;
     Node* prevNode = NULL;
 
@@ -222,6 +245,11 @@ void LinkedList::PrintForward() const {
 }
 
 void LinkedList::PrintBackward() const {
+    if (end == NULL) {
+        printf("NULL\n");
+        return;
+    }
+
     Node* currentNode = end;
     Node* nextNode = NULL;
 
