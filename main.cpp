@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <iostream>
 
 #define MAX_OPTION_LENGTH 30
 
@@ -30,6 +31,7 @@ class LinkedList {
         ~LinkedList();
         void AddBeg(int x);
         void AddEnd(int x);
+        void AddAct(int x);
         void Actual() const;
         void Next();
         void Prev();
@@ -87,6 +89,18 @@ void LinkedList::AddEnd(int x) {
 
     if(actualNext == NULL)
         actualNext = end;
+}
+
+void LinkedList::AddAct(int x) {
+    if(actual == NULL || actual == head) {
+        AddBeg(x);
+        return;
+    } 
+
+    Node* newNode = new Node(x);
+    newNode->npx = XOR(actualPrev, actual);
+    actualPrev->npx = XOR(newNode, XOR(actualPrev->npx, actual));
+    actual->npx = XOR(newNode, XOR(actual->npx, actualPrev));
 }
 
 void LinkedList::Actual() const {
@@ -267,9 +281,46 @@ int main() {
     char userOption[MAX_OPTION_LENGTH];
     bool quit = false;
 
-    while(!quit) {
-        scanf("%s", userOption);
+    // while(!quit) {
+    //     scanf("%s", userOption);
+        
 
+    //     if(strncmp(userOption, "ADD_BEG", MAX_OPTION_LENGTH) == 0) {
+    //         int val;
+    //         scanf("%i", &val);
+    //         l.AddBeg(val);
+    //     } 
+    //     else if(strncmp(userOption, "ADD_END", MAX_OPTION_LENGTH) == 0) {
+    //         int val;
+    //         scanf("%i", &val);
+    //         l.AddEnd(val);
+    //     }
+    //     else if(strncmp(userOption, "ADD_ACT", MAX_OPTION_LENGTH) == 0) {
+    //         int val;
+    //         scanf("%i", &val);
+    //         l.AddAct(val);
+    //     } 
+    //     else if(strncmp(userOption, "ACTUAL", MAX_OPTION_LENGTH) == 0)
+    //         l.Actual();
+    //     else if(strncmp(userOption, "NEXT", MAX_OPTION_LENGTH) == 0)
+    //         l.Next();
+    //     else if(strncmp(userOption, "PREV", MAX_OPTION_LENGTH) == 0)
+    //         l.Prev();
+    //     else if(strncmp(userOption, "DEL_BEG", MAX_OPTION_LENGTH) == 0)
+    //         l.DelBeg();
+    //     else if(strncmp(userOption, "DEL_END", MAX_OPTION_LENGTH) == 0)
+    //         l.DelEnd();
+    //     else if(strncmp(userOption, "DEL_ACT", MAX_OPTION_LENGTH) == 0)
+    //         l.DelAct();
+    //     else if(strncmp(userOption, "PRINT_FORWARD", MAX_OPTION_LENGTH) == 0)
+    //         l.PrintForward();
+    //     else if(strncmp(userOption, "PRINT_BACKWARD", MAX_OPTION_LENGTH) == 0)
+    //         l.PrintBackward();
+    //     else
+    //         quit = true;
+    // }
+
+    while(std::cin >> userOption) {
         if(strncmp(userOption, "ADD_BEG", MAX_OPTION_LENGTH) == 0) {
             int val;
             scanf("%i", &val);
@@ -279,6 +330,11 @@ int main() {
             int val;
             scanf("%i", &val);
             l.AddEnd(val);
+        }
+        else if(strncmp(userOption, "ADD_ACT", MAX_OPTION_LENGTH) == 0) {
+            int val;
+            scanf("%i", &val);
+            l.AddAct(val);
         } 
         else if(strncmp(userOption, "ACTUAL", MAX_OPTION_LENGTH) == 0)
             l.Actual();
@@ -296,8 +352,6 @@ int main() {
             l.PrintForward();
         else if(strncmp(userOption, "PRINT_BACKWARD", MAX_OPTION_LENGTH) == 0)
             l.PrintBackward();
-        else
-            quit = true;
     }
     
     return 0;
