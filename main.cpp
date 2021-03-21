@@ -365,8 +365,6 @@ int main() {
             l.PrintForward();
         else if(strncmp(userOption, "PRINT_BACKWARD", MAX_OPTION_LENGTH) == 0)
             l.PrintBackward();
-        else if(strncmp(userOption, "QUIT", MAX_OPTION_LENGTH) == 0)
-            break;
     }
     
     return 0;
