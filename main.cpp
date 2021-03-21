@@ -230,13 +230,21 @@ void LinkedList::DelAct() {
         actual = end;
         actualNext = NULL;
         actualPrev = end->npx;
+        delete temp;
     // lista nie jest ani jednoelementowa, ani actual nie wskazuje
     // na początek listy
     } else {
         Node* temp = actual;
-        Node* tempNext = actualNext;
         MoveActual(false);
-        actualNext = tempNext;
+        actualNext = XOR(temp->npx, actual);
+        actual->npx = XOR(actualPrev, actualNext);
+
+        // sprawdzenie czy nie usuwamy z 2 elementowej listy
+        if(actualNext != NULL) 
+            actualNext->npx = XOR(actual, XOR(actualNext->npx, temp));
+        else 
+            end = head = actual;
+
         delete temp;
     }    
 }
@@ -278,26 +286,6 @@ void LinkedList::DelVal(int x) {
         delete cursor;
         cursor = nextNode;
     }
-
-    // while(currentNode != NULL && currentNode->data != x) {
-    //     Node* temp = prevNode;
-    //     prevNode = currentNode;
-    //     currentNode = XOR(temp, currentNode->npx);
-    // }
-
-    // if(currentNode == NULL)
-    //     return;
-    
-    // Node* nextNode = XOR(currentNode->npx, prevNode);
-    // prevNode->npx = XOR(XOR(currentNode, prevNode->npx), nextNode);
-    // nextNode->npx = XOR(prevNode, XOR(nextNode->npx, currentNode));
-
-    // if(currentNode == actualPrev)
-    //     actualPrev = prevNode;
-    // else if(currentNode == actualNext)
-    //     actualNext = nextNode;
-
-    // delete currentNode;
 }
 
 void LinkedList::PrintForward() const {
@@ -377,6 +365,8 @@ int main() {
             l.PrintForward();
         else if(strncmp(userOption, "PRINT_BACKWARD", MAX_OPTION_LENGTH) == 0)
             l.PrintBackward();
+        else if(strncmp(userOption, "QUIT", MAX_OPTION_LENGTH) == 0)
+            break;
     }
     
     return 0;
