@@ -26,6 +26,10 @@ class LinkedList {
         void MoveActual(bool moveForward);
         void MoveActualOnBeg();
         void MoveActualOnEnd();
+        void DelActualHead();   // usunięcie actual który jest 1. elementem
+        void DelActualNormal(); // usunięcie actual który jest normalnym elementem
+        void MoveCursorToSearchedEl(Node** cursor, Node** prevCursor, int val);
+        void DelCursor(Node** cursor, Node** prevCursor); 
     public:
         LinkedList();
         ~LinkedList();
@@ -138,7 +142,7 @@ void LinkedList::MoveActual(bool moveForward) {
         
         if (actualNext != NULL)
             actualNext = XOR(actualNext->npx, temp);
-    } else {
+    } else if (!moveForward) {
         // obecny el jest pierwszym - przesuń actual na koniec listy
         if(actualPrev == NULL) {
             MoveActualOnEnd();
@@ -195,8 +199,6 @@ void LinkedList::DelEnd() {
     if(end == NULL)
         return;
 
-    // gdy actual wskazuje na usuwany tył - przesuwam go
-    // do tyłu
     if(actual == end) {
         DelAct();
         return;
@@ -211,43 +213,76 @@ void LinkedList::DelEnd() {
     delete temp;  
 }
 
+void LinkedList::DelActualHead() {
+    Node* temp = head;
+    head = head->npx;
+    head->npx = XOR(temp, head->npx);
+
+    actual = end;
+    actualNext = NULL;
+    actualPrev = end->npx;
+    delete temp;
+}
+
+void LinkedList::DelActualNormal() {
+    Node* temp = actual;
+    MoveActual(false);
+    actualNext = XOR(temp->npx, actual);
+    actual->npx = XOR(actualPrev, actualNext);
+
+    // sprawdzenie czy nie usuwamy z 2 elementowej listy
+    if(actualNext != NULL) 
+        actualNext->npx = XOR(actual, XOR(actualNext->npx, temp));
+    else 
+        end = head = actual;
+
+    delete temp;
+}
+
 void LinkedList::DelAct() {
     if(actual == NULL)
         return;
 
-    // list jest jednoelementowa
     if(head == end) {
         delete head;
         head = end = actual = actualPrev = actualNext = NULL;
     }
-    // actual wskazuje na pierwszy, wiec usun pierwszy element,
-    // a actual ma wskazywać na ostatni element
-    else if(head == actual) {
-        Node* temp = head;
-        head = head->npx;
-        head->npx = XOR(temp, head->npx);
-    
-        actual = end;
-        actualNext = NULL;
-        actualPrev = end->npx;
-        delete temp;
-    // lista nie jest ani jednoelementowa, ani actual nie wskazuje
-    // na początek listy
-    } else {
-        Node* temp = actual;
-        MoveActual(false);
-        actualNext = XOR(temp->npx, actual);
-        actual->npx = XOR(actualPrev, actualNext);
-
-        // sprawdzenie czy nie usuwamy z 2 elementowej listy
-        if(actualNext != NULL) 
-            actualNext->npx = XOR(actual, XOR(actualNext->npx, temp));
-        else 
-            end = head = actual;
-
-        delete temp;
-    }    
+    // pierwszy element to actual - usun go, a actual przesun na koniec
+    else if(head == actual)
+        DelActualHead();
+    // wykonaj normalne usuniecie
+    else
+        DelActualNormal();
 }
+
+void LinkedList::MoveCursorToSearchedEl(Node** cursor, Node** prevCursor, int val) {
+    while(*cursor != NULL && (*cursor)->data != val) {
+        Node* temp = *prevCursor;
+        *prevCursor = *cursor;
+        *cursor = XOR(temp, (*cursor)->npx);
+    }
+}
+
+void LinkedList::DelCursor(Node** cursor, Node** prevCursor) {
+    Node* nextNode = XOR((*cursor)->npx, *prevCursor);
+
+    // zmień składową npx elementów przed i po usuwanym elemencie
+    if(*prevCursor != NULL)
+        (*prevCursor)->npx = XOR(XOR(*cursor, (*prevCursor)->npx), nextNode);
+    if(nextNode != NULL)
+        nextNode->npx = XOR(*prevCursor, XOR(nextNode->npx, *cursor));
+
+    // jeśli usuwany element jest actualPrev lub acutalNext - zmień te składowe
+    if(*cursor == actualPrev)
+        actualPrev = *prevCursor;
+    else if(*cursor == actualNext)
+        actualNext = nextNode;
+
+    delete *cursor;
+
+    // przesuń kursor na kolejny element
+    *cursor = nextNode;
+} 
 
 void LinkedList::DelVal(int x) {
     if(head == NULL)
@@ -263,28 +298,12 @@ void LinkedList::DelVal(int x) {
     Node* prevCursor = NULL;
 
     while(true) {
-        while(cursor != NULL && cursor->data != x) {
-            Node* temp = prevCursor;
-            prevCursor = cursor;
-            cursor = XOR(temp, cursor->npx);
-        }
+        MoveCursorToSearchedEl(&cursor, &prevCursor, x);
 
-        if(cursor == NULL)
+        if(cursor != NULL)
+            DelCursor(&cursor, &prevCursor);
+        else
             break;
-        
-        Node* nextNode = XOR(cursor->npx, prevCursor);
-        if(prevCursor != NULL)
-            prevCursor->npx = XOR(XOR(cursor, prevCursor->npx), nextNode);
-        if(nextNode != NULL)
-            nextNode->npx = XOR(prevCursor, XOR(nextNode->npx, cursor));
-
-        if(cursor == actualPrev)
-            actualPrev = prevCursor;
-        else if(cursor == actualNext)
-            actualNext = nextNode;
-
-        delete cursor;
-        cursor = nextNode;
     }
 }
 
