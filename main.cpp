@@ -27,6 +27,7 @@ class LinkedList {
         void MoveActualOnBeg();
         void MoveActualOnEnd();
         void DelActualHead();   // usunięcie actual który jest 1. elementem
+        void DelActualEnd();    // usunięcie actual który jest ostatnim elementem
         void DelActualNormal(); // usunięcie actual który jest normalnym elementem
         void MoveCursorToSearchedEl(Node** cursor, Node** prevCursor, int val);
         void DelCursor(Node** cursor, Node** prevCursor); 
@@ -106,6 +107,7 @@ void LinkedList::AddAct(int x) {
     newNode->npx = XOR(actualPrev, actual);
     actualPrev->npx = XOR(newNode, XOR(actualPrev->npx, actual));
     actual->npx = XOR(newNode, XOR(actual->npx, actualPrev));
+    actualPrev = newNode;
 }
 
 void LinkedList::Actual() const {
@@ -224,17 +226,22 @@ void LinkedList::DelActualHead() {
     delete temp;
 }
 
+void LinkedList::DelActualEnd() {
+    Node* temp = actual;
+    MoveActual(false);
+    actualNext = NULL;
+    actual->npx = actualPrev;
+    end = actual;
+
+    delete temp;
+}
+
 void LinkedList::DelActualNormal() {
     Node* temp = actual;
     MoveActual(false);
     actualNext = XOR(temp->npx, actual);
     actual->npx = XOR(actualPrev, actualNext);
-
-    // sprawdzenie czy nie usuwamy z 2 elementowej listy
-    if(actualNext != NULL) 
-        actualNext->npx = XOR(actual, XOR(actualNext->npx, temp));
-    else 
-        end = head = actual;
+    actualNext->npx = XOR(actual, XOR(actualNext->npx, temp));
 
     delete temp;
 }
@@ -250,6 +257,8 @@ void LinkedList::DelAct() {
     // pierwszy element to actual - usun go, a actual przesun na koniec
     else if(head == actual)
         DelActualHead();
+    else if(end == actual)
+        DelActualEnd();
     // wykonaj normalne usuniecie
     else
         DelActualNormal();
@@ -287,11 +296,11 @@ void LinkedList::DelCursor(Node** cursor, Node** prevCursor) {
 void LinkedList::DelVal(int x) {
     if(head == NULL)
         return;
-    while (head->data == x)
+    while (head != NULL && head->data == x)
         DelBeg();
-    while (end->data == x)
+    while (end != NULL && end->data == x)
         DelEnd();
-    while (actual->data == x)
+    while (actual != NULL && actual->data == x)
         DelAct();
 
     Node* cursor = head;
